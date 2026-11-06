@@ -58,10 +58,10 @@ export function SpeakControls({ text }: { text: string }) {
     setState("loading");
     const chunks = chunkText(text);
     try {
-      let next: Promise<string> | null = fetchAudio(chunks[0], ac.signal);
+      let next: Promise<string> | null = fetchAudio(chunks[0] ?? "", ac.signal);
       for (let i = 0; i < chunks.length; i++) {
         const url: string = await next!;
-        next = i + 1 < chunks.length ? fetchAudio(chunks[i + 1], ac.signal) : null;
+        next = i + 1 < chunks.length ? fetchAudio(chunks[i + 1] ?? "", ac.signal) : null;
         if (ac.signal.aborted) return;
         const audio = audioRef.current ?? new Audio();
         audioRef.current = audio;

@@ -24,7 +24,7 @@ export function MicButton({ onText, disabled }: { onText: (t: string) => void; d
     rec.ondataavailable = (e) => e.data.size && parts.push(e.data);
     rec.onstop = async () => {
       stream.getTracks().forEach((t) => t.stop());
-      const type = (rec.mimeType || "audio/webm").split(";")[0].replace("video/", "audio/");
+      const type = ((rec.mimeType || "audio/webm").split(";")[0] ?? "audio/webm").replace("video/", "audio/");
       const blob = new Blob(parts, { type });
       if (blob.size < 1000) {
         setState("idle");
