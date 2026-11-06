@@ -75,11 +75,11 @@ export async function listItems(): Promise<SavedItem[]> {
     return (res.values ?? []).map((r) => {
       const row = r as Record<string, unknown>;
       return {
-        id: String(row.id),
-        question: String(row.question ?? ""),
-        answer: String(row.answer ?? ""),
-        image: (row.image as string) ?? null,
-        createdAt: Number(row.created_at),
+        id: String(row['id']),
+        question: String(row['question'] ?? ""),
+        answer: String(row['answer'] ?? ""),
+        image: (row['image'] as string) ?? null,
+        createdAt: Number(row['created_at']),
       };
     });
   }

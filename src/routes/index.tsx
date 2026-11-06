@@ -20,7 +20,7 @@ export const Route = createFileRoute("/")({
   component: ChatPage,
 });
 
-type Msg = { id: string; role: "user" | "assistant"; content: string; image?: string; done?: boolean; error?: boolean };
+type Msg = { id: string; role: "user" | "assistant"; content: string; image?: string | undefined; done?: boolean; error?: boolean };
 
 const SUGGESTIONS = ["Explain quantum computing simply", "Plan a 3-day trip to Lisbon", "What's in this photo?"];
 
@@ -95,7 +95,7 @@ function ChatPage() {
   };
 
   const questionFor = (idx: number) => {
-    for (let i = idx - 1; i >= 0; i--) if (messages[i].role === "user") return messages[i];
+    for (let i = idx - 1; i >= 0; i--) if (messages[i]?.role === "user") return messages[i];
     return undefined;
   };
 
@@ -140,7 +140,7 @@ function ChatPage() {
                     </div>
                   )}
                   {m.done && !m.error && (
-                    <ResponseActions id={m.id} question={questionFor(i)?.content ?? ""} image={questionFor(i)?.image} answer={m.content} />
+                    <ResponseActions id={m.id} question={questionFor(i)?.content ?? ""} image={questionFor(i)?.image ?? null} answer={m.content} />
                   )}
                 </div>
               ),

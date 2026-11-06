@@ -10,7 +10,7 @@ const SYSTEM =
   "You are AI PLEX, a sharp, friendly assistant. Answer clearly using Markdown. When the user shares an image, analyze it carefully and describe what matters.";
 
 function apiKey() {
-  const key = process.env.LOVABLE_API_KEY;
+  const key = process.env['LOVABLE_API_KEY'];
   if (!key) throw new Error("AI is not configured");
   return key;
 }

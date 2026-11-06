@@ -13,7 +13,7 @@ export function ResponseActions({
   id: string;
   question: string;
   answer: string;
-  image?: string | null;
+  image?: string | null | undefined;
 }) {
   const [saved, setSaved] = useState(false);
   useEffect(() => {
