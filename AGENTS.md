@@ -28,3 +28,8 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Account architecture
+- Keep account state in one root AuthProvider with one identity-change subscriber, so headers and pages agree on sign-in state.
+- Use managed email OTP verification and an auth lifecycle trigger for private profiles; never issue app-generated codes or store passwords.
+- Chat and the device-local offline library remain public; adding account screens must not gate existing functionality.
