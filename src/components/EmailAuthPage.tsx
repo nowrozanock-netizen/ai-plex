@@ -50,8 +50,8 @@ export function EmailAuthPage({ mode }: { mode: "signup" | "login" }) {
     } finally { setBusy(false); }
   };
 
-  const verify = async (event: FormEvent) => {
-    event.preventDefault();
+  const verify = async (event?: FormEvent) => {
+    event?.preventDefault();
     if (!sentEmail || busy) return;
     const parsed = codeSchema.safeParse(code);
     if (!parsed.success) { setError(parsed.error.issues[0]?.message ?? "Enter your code."); return; }
@@ -65,6 +65,12 @@ export function EmailAuthPage({ mode }: { mode: "signup" | "login" }) {
       setError(e instanceof Error ? e.message : "That code couldn't be verified. Try again.");
     } finally { setBusy(false); }
   };
+
+  // Auto-verify as soon as all six digits are entered.
+  useEffect(() => {
+    if (sentEmail && code.length === 6 && !busy) void verify();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code, sentEmail]);
 
   return <div className="min-h-dvh">
     <AppHeader />
