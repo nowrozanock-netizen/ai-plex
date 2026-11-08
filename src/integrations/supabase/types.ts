@@ -14,6 +14,106 @@ export type Database = {
   }
   public: {
     Tables: {
+      credit_events: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          kind: string
+          reference: string
+          status: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          kind: string
+          reference: string
+          status?: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          reference?: string
+          status?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_events_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "credit_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_reward_sessions: {
+        Row: {
+          ad_unit: string
+          created_at: string
+          id: string
+          rewarded_at: string | null
+          transaction_id: string | null
+          wallet_id: string
+        }
+        Insert: {
+          ad_unit: string
+          created_at?: string
+          id?: string
+          rewarded_at?: string | null
+          transaction_id?: string | null
+          wallet_id: string
+        }
+        Update: {
+          ad_unit?: string
+          created_at?: string
+          id?: string
+          rewarded_at?: string | null
+          transaction_id?: string | null
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_reward_sessions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "credit_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          environment: string
+          guest_hash: string | null
+          id: string
+          owner_id: string | null
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          environment?: string
+          guest_hash?: string | null
+          id?: string
+          owner_id?: string | null
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          environment?: string
+          guest_hash?: string | null
+          id?: string
+          owner_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -37,7 +137,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      credit_finish: {
+        Args: { p_request: string; p_success: boolean; p_wallet: string }
+        Returns: undefined
+      }
+      credit_reserve: {
+        Args: { p_request: string; p_wallet: string }
+        Returns: boolean
+      }
+      credit_reward: {
+        Args: { p_session: string; p_test: boolean; p_transaction: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
