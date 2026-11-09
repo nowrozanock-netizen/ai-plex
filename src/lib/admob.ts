@@ -3,10 +3,10 @@ import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
 export async function watchRewardedAd(adUnit: string, sessionId: string, testing: boolean) {
   if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') throw new Error('Rewarded ads are available in the Android app.');
   const { AdMob, AdmobConsentStatus, RewardAdPluginEvents } = await import('@capacitor-community/admob');
-  let consent = await AdMob.requestConsentInfo();
+   await AdMob.initialize({ initializeForTesting: testing });
+   let consent = await AdMob.requestConsentInfo();
   if (consent.isConsentFormAvailable && consent.status === AdmobConsentStatus.REQUIRED) consent = await AdMob.showConsentForm();
   if (!consent.canRequestAds) throw new Error('Ads are unavailable with your current privacy choice.');
-  await AdMob.initialize({ initializeForTesting: testing });
   await AdMob.prepareRewardVideoAd({ adId: adUnit, isTesting: testing, ssv: { customData: sessionId } });
   const handles: PluginListenerHandle[] = [];
   try {

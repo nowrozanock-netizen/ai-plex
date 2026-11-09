@@ -1,5 +1,8 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { streamText, type ModelMessage } from "ai";
+import { z } from 'zod';
+import { creditIdentitySchema } from './credit-rules';
+import { resolveWallet } from './credits.server';
 
 const GATEWAY = "https://ai.gateway.lovable.dev";
 const CHAT_MODEL = "openai/gpt-6-astra";
@@ -35,16 +38,14 @@ async function relayError(res: Response) {
   return errorResponse(res.status, message);
 }
 
-type InMsg = { role: "user" | "assistant"; content: string; image?: string };
-
 export async function handleChat(request: Request) {
-  let body: { messages?: InMsg[] };
+  let body;
   try {
-    body = await request.json();
+    body = creditIdentitySchema.extend({ messages: z.array(z.object({ role: z.enum(['user', 'assistant']), content: z.string().max(20000), image: z.string().max(10000000).optional() })).min(1).max(100) }).parse(await request.json());
   } catch {
     return errorResponse(400, "Invalid request");
   }
-  const msgs = (body.messages ?? []).slice(-30);
+  const msgs = body.messages.slice(-30);
   if (!msgs.length) return errorResponse(400, "No message provided");
 
   const messages: ModelMessage[] = msgs.map((m) => {
@@ -60,6 +61,19 @@ export async function handleChat(request: Request) {
     return { role: m.role, content: String(m.content ?? "").slice(0, 20000) } as ModelMessage;
   });
 
+  let walletContext;
+  try { walletContext = await resolveWallet(request, body.guestToken); }
+  catch { return errorResponse(401, 'Could not open your credits. Please refresh and try again.'); }
+  const { db, wallet } = walletContext;
+  const requestId = crypto.randomUUID();
+  const { data: reserved, error: reserveError } = await db.rpc('credit_reserve', { p_wallet: wallet.id, p_request: requestId });
+  if (reserveError) return errorResponse(503, 'Could not check credits. Please try again.');
+  if (!reserved) return errorResponse(402, 'No credits remaining. Watch a rewarded ad to earn 15 credits.');
+  const settle = async (success: boolean) => {
+    const { error } = await db.rpc('credit_finish', { p_wallet: wallet.id, p_request: requestId, p_success: success });
+    if (error) throw new Error('Could not settle answer credits');
+  };
+  try {
   const key = apiKey();
   const provider = createOpenAI({
     baseURL: `${GATEWAY}/v1`,
@@ -74,7 +88,33 @@ export async function handleChat(request: Request) {
     providerOptions: { openai: { store: false, reasoningEffort: "low" } },
     onError: ({ error }) => console.error("chat stream error", error),
   });
-  return result.toTextStreamResponse();
+  const reader = result.textStream.getReader();
+  let hasText = false;
+  return new Response(new ReadableStream<Uint8Array>({
+    async start(controller) {
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          if (value.trim()) hasText = true;
+          controller.enqueue(new TextEncoder().encode(value));
+        }
+        const reason = await result.finishReason;
+        const success = hasText && !request.signal.aborted && reason !== 'error';
+        await settle(success);
+        if (!success) { controller.error(new Error('The answer did not complete. Your credit was refunded.')); return; }
+        controller.close();
+      } catch (error) {
+        await settle(false).catch(e => console.error('Credit settlement failed', e));
+        controller.error(error);
+      }
+    },
+    async cancel() { await reader.cancel(); await settle(false); },
+  }), { headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' } });
+  } catch {
+    await settle(false);
+    return errorResponse(503, 'AI is unavailable. Your credit was refunded. Please try again.');
+  }
 }
 
 export async function handleTranscribe(request: Request) {

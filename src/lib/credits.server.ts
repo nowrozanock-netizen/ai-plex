@@ -1,9 +1,7 @@
 import { createServerOnlyFn } from '@tanstack/react-start';
 import { createHash } from 'node:crypto';
-import { z } from 'zod';
 import { isCreditPreview, TEST_AD_UNIT } from './credit-rules';
 
-export const creditIdentitySchema = z.object({ guestToken: z.string().regex(/^[a-f0-9]{64}$/) });
 export const resolveWallet = createServerOnlyFn(async (request: Request, guestToken: string) => {
   const { supabaseAdmin: db } = await import('@/integrations/supabase/client.server');
   const auth = request.headers.get('Authorization');
@@ -16,7 +14,7 @@ export const resolveWallet = createServerOnlyFn(async (request: Request, guestTo
   }
   const environment = isCreditPreview(new URL(request.url).hostname) ? 'test' : 'live';
   const hash = createHash('sha256').update(guestToken).digest('hex');
-  const values = owner ? { owner_id: owner, environment } : { guest_hash: hash, environment };
+  const values = { owner_id: owner, guest_hash: owner ? null : hash, environment };
   const { error: insertError } = await db.from('credit_wallets').upsert(values, { onConflict: owner ? 'owner_id,environment' : 'guest_hash,environment', ignoreDuplicates: true });
   if (insertError) throw new Error('Could not open your credits.');
   let query = db.from('credit_wallets').select('*').eq('environment', environment);

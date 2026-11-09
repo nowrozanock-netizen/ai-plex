@@ -16,6 +16,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiSpeechRouteImport } from './routes/api/speech'
 import { Route as ApiTranscribeRouteImport } from './routes/api/transcribe'
+import { Route as ApiPublicAdmobRewardRouteImport } from './routes/api/public/admob-reward'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -52,6 +53,11 @@ const ApiTranscribeRoute = ApiTranscribeRouteImport.update({
   path: '/api/transcribe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicAdmobRewardRoute = ApiPublicAdmobRewardRouteImport.update({
+  id: '/api/public/admob-reward',
+  path: '/api/public/admob-reward',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -61,6 +67,7 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/api/speech': typeof ApiSpeechRoute
   '/api/transcribe': typeof ApiTranscribeRoute
+  '/api/public/admob-reward': typeof ApiPublicAdmobRewardRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +77,7 @@ export interface FileRoutesByTo {
   '/api/chat': typeof ApiChatRoute
   '/api/speech': typeof ApiSpeechRoute
   '/api/transcribe': typeof ApiTranscribeRoute
+  '/api/public/admob-reward': typeof ApiPublicAdmobRewardRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +88,7 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/api/speech': typeof ApiSpeechRoute
   '/api/transcribe': typeof ApiTranscribeRoute
+  '/api/public/admob-reward': typeof ApiPublicAdmobRewardRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/speech'
     | '/api/transcribe'
+    | '/api/public/admob-reward'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/speech'
     | '/api/transcribe'
+    | '/api/public/admob-reward'
   id:
     | '__root__'
     | '/'
@@ -109,6 +120,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/speech'
     | '/api/transcribe'
+    | '/api/public/admob-reward'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,6 +131,7 @@ export interface RootRouteChildren {
   ApiChatRoute: typeof ApiChatRoute
   ApiSpeechRoute: typeof ApiSpeechRoute
   ApiTranscribeRoute: typeof ApiTranscribeRoute
+  ApiPublicAdmobRewardRoute: typeof ApiPublicAdmobRewardRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -172,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTranscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/admob-reward': {
+      id: '/api/public/admob-reward'
+      path: '/api/public/admob-reward'
+      fullPath: '/api/public/admob-reward'
+      preLoaderRoute: typeof ApiPublicAdmobRewardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -183,6 +203,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatRoute: ApiChatRoute,
   ApiSpeechRoute: ApiSpeechRoute,
   ApiTranscribeRoute: ApiTranscribeRoute,
+  ApiPublicAdmobRewardRoute: ApiPublicAdmobRewardRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

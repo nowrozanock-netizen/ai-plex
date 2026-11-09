@@ -14,6 +14,8 @@ export const Route = createFileRoute("/library")({
       { name: "description", content: "Your saved AI PLEX answers, available without internet." },
       { property: "og:title", content: "Offline Library — AI PLEX" },
       { property: "og:description", content: "Your saved AI PLEX answers, available without internet." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: LibraryPage,

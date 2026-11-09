@@ -33,3 +33,8 @@ use the editor.
 - Keep account state in one root AuthProvider with one identity-change subscriber, so headers and pages agree on sign-in state.
 - Use managed email OTP verification and an auth lifecycle trigger for private profiles; never issue app-generated codes or store passwords.
 - Chat and the device-local offline library remain public; adding account screens must not gate existing functionality.
+
+## Rewarded credits
+- Keep credit mutations server-only and atomic; verify wallet ownership before spending or granting to prevent forged balances.
+- Isolate preview/test wallets from live wallets, and grant live ad rewards only after Google's signed SSV callback to prevent client-side reward forgery.
+- Keep credit validation schemas browser-safe and import server-only wallet helpers inside server function handlers to preserve the bundle boundary.

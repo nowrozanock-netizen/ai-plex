@@ -1,3 +1,5 @@
+import { z } from 'zod';
+export const creditIdentitySchema = z.object({ guestToken: z.string().regex(/^[a-f0-9]{64}$/) });
 export const STARTER_CREDITS = 15;
 export const ANSWER_COST = 1;
 export const AD_REWARD = 15;

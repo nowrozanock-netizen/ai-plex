@@ -1,14 +1,16 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Library, MessageSquare, LogOut, UserRound } from "lucide-react";
+import { Library, MessageSquare, LogOut, UserRound, Coins } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useAccount } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
+import { useCredits } from './CreditProvider';
 
 export function AppHeader() {
   const { user, loading } = useAccount();
+  const credits = useCredits();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [signingOut, setSigningOut] = useState(false);
@@ -33,6 +35,9 @@ export function AppHeader() {
           <Link to="/" className="chip" activeProps={{ className: "chip chip-active" }} activeOptions={{ exact: true }}>
             <MessageSquare className="size-4" /> Chat
           </Link>
+          <Button variant="ghost" size="sm" className="chip" onClick={() => credits.setOpen(true)} aria-label="Credits">
+            <Coins className="size-4" /> Credits <span className="tabular-nums">{credits.data?.balance ?? '…'}</span>
+          </Button>
           <Link to="/library" className="chip" activeProps={{ className: "chip chip-active" }}>
             <Library className="size-4" /> Library
           </Link>

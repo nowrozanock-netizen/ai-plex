@@ -7,6 +7,9 @@ import { AppHeader } from "@/components/AppHeader";
 import { MicButton } from "@/components/MicButton";
 import { ResponseActions } from "@/components/ResponseActions";
 import { initNotifications, notifyReady, pickImage } from "@/lib/native";
+import { useCredits } from '@/components/CreditProvider';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -15,6 +18,8 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Chat with AI PLEX using text, your voice or your camera. Listen to answers and save them offline." },
       { property: "og:title", content: "AI PLEX — Ask with text, voice or photos" },
       { property: "og:description", content: "Chat with AI using text, voice or photos. Listen to answers and save them offline." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: ChatPage,
@@ -25,6 +30,7 @@ type Msg = { id: string; role: "user" | "assistant"; content: string; image?: st
 const SUGGESTIONS = ["Explain quantum computing simply", "Plan a 3-day trip to Lisbon", "What's in this photo?"];
 
 function ChatPage() {
+  const credits = useCredits();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [image, setImage] = useState<string | null>(null);
@@ -48,6 +54,7 @@ function ChatPage() {
   const send = async (text = input) => {
     const content = text.trim();
     if ((!content && !image) || busy) return;
+    if (!credits.data || credits.data.balance < 1) { credits.setOpen(true); return; }
     void initNotifications();
     const userMsg: Msg = { id: crypto.randomUUID(), role: "user", content: content || "Analyze this image.", image: image ?? undefined };
     const aiId = crypto.randomUUID();
@@ -60,14 +67,16 @@ function ChatPage() {
     abortRef.current = ac;
     let full = "";
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history.map(({ role, content, image }) => ({ role, content, image })) }),
+        headers: { "Content-Type": "application/json", ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
+        body: JSON.stringify({ guestToken: credits.guestToken, messages: history.map(({ role, content, image }) => ({ role, content, image })) }),
         signal: ac.signal,
       });
       if (!res.ok || !res.body) {
         const j = await res.json().catch(() => ({}));
+        if (res.status === 402) credits.setOpen(true);
         throw new Error(j.error ?? "Something went wrong. Please try again.");
       }
       const reader = res.body.getReader();
@@ -89,6 +98,7 @@ function ChatPage() {
         setMessages((ms) => ms.map((m) => (m.id === aiId ? { ...m, content: msg, error: true } : m)));
       }
     } finally {
+      await credits.refresh();
       setBusy(false);
       abortRef.current = null;
     }
@@ -152,6 +162,7 @@ function ChatPage() {
 
       <div className="fixed inset-x-0 bottom-0 z-20 bg-gradient-to-t from-background via-background to-transparent px-3 pb-[max(env(safe-area-inset-bottom),12px)] pt-6">
         <div className="composer mx-auto max-w-3xl p-2">
+          {credits.data?.balance === 0 && <div className="flex flex-wrap items-center justify-between gap-2 px-3 pb-2 text-sm"><span>No credits remaining</span><Button variant="ghost" size="sm" onClick={() => credits.setOpen(true)}>Get 15 credits</Button></div>}
           {image && (
             <div className="relative mb-2 ml-2 inline-block">
               <img src={image} alt="Selected" className="h-20 rounded-xl" />
